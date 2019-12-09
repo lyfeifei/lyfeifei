@@ -1,0 +1,16 @@
+server:
+  port: 70007
+
+spring:
+  application:
+    name: lyfeifei
+  data:
+    elasticsearch:
+      cluster-name: lls
+      cluster-nodes: 127.0.0.1:9300
+      repositories:
+        enabled: true
+      properties:
+        transport:
+          tcp:
+            connect_timeout: 120s

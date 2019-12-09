@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <springProperty name="APP" scope="context" source="spring.application.name"/>
+    <SpringProperty name="BASE_PATH" scope="context" source="/data/cbcloud/cms/logs" defaultValue="/data/cbcloud/cms/logs"/>
+    <variable name="LOGSTASH_HOST" value="${LOGSTASH_HOST:-localhost}" />
+    <variable name="LOGSTASH_PORT" value="${LOGSTASH_PORT:-9600}" />
+
+    <!-- 日志打印格式 -->
+    <property name="FULLPATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} ${level:-%5p} [${APP:-}, %X{X-B3-TraceId:-}, %X{X-B3-SpanId:-}, %X{X-Span-Export:-}] ${PID:- } --- [%t] %C:%L - %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <!--<appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <mdc/>
+                <context/>
+                <logLevel/>
+                <loggerName/>
+                <pattern>
+                    <pattern>
+                        {
+                        "severity": "%level",
+                        "service": "${APP:-}",
+                        "trace": "%X{X-B3-TraceId:-}",
+                        "span": "%X{X-B3-SpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}",
+                        "pid": "${PID:-}",
+                        "thread": "%thread",
+                        "class": "%logger{40}",
+                        "rest": "%message"
+                        }
+                    </pattern>
+                </pattern>
+                <threadName/>
+                <message/>
+                <logstashMarkers/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>-->
+
+    <!-- 控制台输出  DEBUG-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${FULLPATTERN}</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- 应用运行日志 INFO-->
+    <appender name="FILE-RUNNING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FULLPATTERN}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${BASE_PATH}/log-run-info.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${BASE_PATH}/%d{yyyy-MM-dd}/log-run-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <MaxHistory>365</MaxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${FULLPATTERN}</pattern>
+        </layout>
+    </appender>
+
+
+    <!-- 用户操作日志 INFO-->
+    <appender name="FILE-BEHAVIOUR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FULLPATTERN}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${BASE_PATH}/log-operation-info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${BASE_PATH}/%d{yyyy-MM-dd}/log-operation-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <MaxHistory>365</MaxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${FULLPATTERN}</pattern>
+        </layout>
+    </appender>
+
+
+    <!-- 微服务日志 INFO-->
+    <appender name="FILE-SERVICE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FULLPATTERN}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${BASE_PATH}/log-service-info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${BASE_PATH}/%d{yyyy-MM-dd}/log-service-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <MaxHistory>365</MaxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${FULLPATTERN}</pattern>
+        </layout>
+    </appender>
+
+
+    <!-- 数据库操作日志 -->
+    <appender name="FILE-OPERATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FULLPATTERN}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${BASE_PATH}/log-data-info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${BASE_PATH}/%d{yyyy-MM-dd}/log-data-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+    </appender>
+
+    <!-- 运行日志 -->
+    <logger name="running-log" level="INFO" additivity="false">
+        <appender-ref ref="FILE-RUNNING" />
+        <appender-ref ref ="STDOUT"/>
+    </logger>
+
+    <!-- 用户操作日志 -->
+    <logger name="behaviour-log" level="INFO" additivity="false">
+        <appender-ref ref="FILE-BEHAVIOUR" />
+        <appender-ref ref ="STDOUT"/>
+    </logger>
+
+    <!-- 微服务日志 -->
+    <logger name="service-log" level="INFO" additivity="false">
+        <appender-ref ref="FILE-SERVICE" />
+        <appender-ref ref ="STDOUT"/>
+    </logger>
+
+    <logger name="org.xinhua.cbcloud.cms" level="info" additivity="false">
+        <appender-ref ref="FILE-RUNNING"/>
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <logger name="org.hibernate.SQL" additivity="false" >
+        <level value="DEBUG" />
+        <appender-ref ref="FILE-OPERATION" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" additivity="false" level="TRACE">
+        <level value="TRACE"/>
+        <appender-ref ref="FILE-OPERATION"/>
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+
+    <!-- 控制台日志输出 BEHAVIOUR-->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <!--<appender-ref ref="LOGSTASH"/>-->
+        <appender-ref ref="FILE-RUNNING"/>
+    </root>
+</configuration>
