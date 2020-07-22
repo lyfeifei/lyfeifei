@@ -1,0 +1,9 @@
+server:
+  port: 70008
+
+spring:
+  application:
+    name: mongo
+  data:
+    mongodb:
+      uri: mongodb://dag:dag201905@localhost:27017/DAGDB

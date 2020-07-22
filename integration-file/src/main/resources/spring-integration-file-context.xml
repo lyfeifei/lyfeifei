@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-file="http://www.springframework.org/schema/integration/file"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/integration
+http://www.springframework.org/schema/integration/spring-integration.xsd
+http://www.springframework.org/schema/integration/file
+http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+    <bean id="handler"
+          class="org.xinhua.cbcloud.handler.FileHandler" />
+
+    <!-- 定义通道 -->
+    <int:channel id="file-channel"/>
+    <int:channel id="file-channel-out" />
+
+    <!-- 文件类型-输入通道适配器
+        prevent-duplicates="true"  防止重复读取
+        filename-pattern="*.doc"   文件过滤
+        <file:nio-locker/>  文件锁
+        delete-source-files="true"  删除源文件
+    -->
+    <int-file:inbound-channel-adapter
+            directory="D:/spring-integration-samples/input"
+            filename-pattern="*.*"
+            prevent-duplicates="false"
+            channel="file-channel">
+        <int:poller fixed-rate="1000"/>
+    </int-file:inbound-channel-adapter>
+
+    <!-- 文件类型-输出通道适配器 -->
+    <int-file:outbound-channel-adapter
+            directory="D:/spring-integration-samples/output"
+            channel="file-channel-out"
+            delete-source-files="true" />
+
+    <!--定义处理文件类 -->
+    <int:service-activator
+            input-channel="file-channel" output-channel="file-channel-out" ref="handler" method="run" />
+</beans>

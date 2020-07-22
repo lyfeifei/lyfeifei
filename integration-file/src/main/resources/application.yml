@@ -1,0 +1,10 @@
+server:
+  port: 29999
+  servlet:
+    jsp:
+      init-parameters:
+        contextConfigLocation:
+        classpath: spring-integration-file-context.xml
+  max-http-header-size: 4048576
+
+    
