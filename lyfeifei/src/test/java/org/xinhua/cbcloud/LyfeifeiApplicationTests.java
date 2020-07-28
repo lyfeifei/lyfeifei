@@ -1,12 +1,15 @@
 package org.xinhua.cbcloud;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -429,4 +432,37 @@ public class LyfeifeiApplicationTests {
 
         System.out.println(resultMap.toString());
     }
+
+    @Test
+    public void testArray() throws Exception {
+
+        SearchRequestBuilder searchRequestBuilder =
+                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search_v6").setTypes("archieve_type");
+
+        String startTime = "2020-01-01 00:00:00";
+        String endTime = "2020-08-01 00:00:00";
+
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.must(QueryBuilders.termQuery("articleType", "parent"));
+
+        // 匹配数组对象
+        NestedQueryBuilder nestedQuery = new NestedQueryBuilder("recDateTimeArr",
+                new RangeQueryBuilder("recDateTimeArr.dataTime").gte(startTime).lte(endTime), ScoreMode.None);
+        queryBuilder.must(nestedQuery);
+
+        SearchResponse searchResponse = searchRequestBuilder.setQuery(queryBuilder).execute().actionGet();
+        SearchHits searchHits = searchResponse.getHits();
+        long totalHits = searchHits.getTotalHits();
+        if (totalHits > 0) {
+            Iterator<SearchHit> iterator = searchHits.iterator();
+            while (iterator.hasNext()) {
+                SearchHit searchHit = iterator.next();
+                Map<String, Object> entityMap = searchHit.getSourceAsMap();
+                System.out.println(entityMap.toString());
+                //System.out.println("docId：" + entityMap.get("docId").toString());
+                //System.out.println("recDateTimeArr：" + entityMap.get("recDateTimeArr").toString());
+            }
+        }
+    }
+
 }
