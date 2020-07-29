@@ -434,7 +434,7 @@ public class LyfeifeiApplicationTests {
     }
 
     @Test
-    public void testArray() throws Exception {
+    public void testObjectArray() throws Exception {
 
         SearchRequestBuilder searchRequestBuilder =
                 elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search_v6").setTypes("archieve_type");
@@ -462,6 +462,44 @@ public class LyfeifeiApplicationTests {
                 //System.out.println("docId：" + entityMap.get("docId").toString());
                 //System.out.println("recDateTimeArr：" + entityMap.get("recDateTimeArr").toString());
             }
+        }
+    }
+
+    @Test
+    public void testArray() throws Exception {
+
+        SearchRequestBuilder searchRequestBuilder =
+                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search_v6").setTypes("archieve_type");
+
+        String startTime = "2020-01-01 00:00:00";
+        String endTime = "2020-09-01 00:00:00";
+
+        List<String> list = new ArrayList<>();
+        list.add("Establish");
+        list.add("auditReturn");
+
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        //queryBuilder.must(QueryBuilders.termQuery("plateSource", "0"));
+        queryBuilder.must(QueryBuilders.termQuery("articleType", "child"));
+        queryBuilder.must(QueryBuilders.termQuery("plateLibId", "DAG_UNFINISHED_PLATE"));
+        queryBuilder.should(QueryBuilders.termQuery("operationEnName", "Establish"));
+        queryBuilder.should(QueryBuilders.termQuery("operationEnName", "auditReturn"));
+        queryBuilder.must(QueryBuilders.rangeQuery("insertTime").gte(startTime).lte(endTime));
+
+        SearchResponse searchResponse = searchRequestBuilder.setQuery(queryBuilder).execute().actionGet();
+        SearchHits searchHits = searchResponse.getHits();
+        long totalHits = searchHits.getTotalHits();
+        System.out.println("数据总量：" + totalHits);
+        if (totalHits > 0) {
+            Iterator<SearchHit> iterator = searchHits.iterator();
+            while (iterator.hasNext()) {
+                SearchHit searchHit = iterator.next();
+                Map<String, Object> entityMap = searchHit.getSourceAsMap();
+                System.out.println("打印查询结果：");
+                System.out.println(entityMap.toString());
+            }
+        } else {
+            System.out.println("暂无数据");
         }
     }
 
