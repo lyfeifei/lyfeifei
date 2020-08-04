@@ -6,4 +6,7 @@ spring:
     name: mongo
   data:
     mongodb:
-      uri: mongodb://dag:dag201905@localhost:27017/DAGDB
+      # 测试环境
+      #uri: mongodb://dag:dag201905@localhost:27017/DAGDB
+      # 生产环境
+      uri: mongodb://dag:dsp2019&@mongos-dag.inserv.cloudb.xinhua-news.cn:30001/DAGDB?w=majority&wtimeoutMS=2000&maxPoolSize=200&minPoolSize=10

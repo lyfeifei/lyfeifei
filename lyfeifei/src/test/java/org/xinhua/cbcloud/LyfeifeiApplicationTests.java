@@ -24,6 +24,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.aggregations.metrics.valuecount.InternalValueCount;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -468,25 +469,67 @@ public class LyfeifeiApplicationTests {
     @Test
     public void testArray() throws Exception {
 
-        SearchRequestBuilder searchRequestBuilder =
-                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search_v6").setTypes("archieve_type");
+//        SearchRequestBuilder searchRequestBuilder =
+//                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search").setTypes("archieve_type");
 
         String startTime = "2020-01-01 00:00:00";
-        String endTime = "2020-09-01 00:00:00";
+        String endTime = "2020-12-31 00:00:00";
 
         List<String> list = new ArrayList<>();
-        list.add("Establish");
-        list.add("auditReturn");
+        list.add("null");
+        //list.add("Establish");
+        //list.add("auditReturn");
+
+        List<String> list2 = new ArrayList<>();
+        list2.add("薛晓佳");
+        list2.add("袁卫国");
+        list2.add("庞元元");
+        list2.add("安玉宏");
+        list2.add("王晓洁");
+        list2.add("孙敏");
+        list2.add("蔡国兆");
+        list2.add("陕西分社智库");
+        list2.add("高增双");
+        list2.add("盖博铭");
+        list2.add("王勇军");
+        list2.add("丁磊");
+        list2.add("王明浩");
+        list2.add("王阳");
+        list2.add("才扬");
+        list2.add("赵戈");
+        list2.add("郭春菊");
+        list2.add("马曹冉");
+        list2.add("刘颖");
+        list2.add("董季");
+        list2.add("王阳");
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        //queryBuilder.must(QueryBuilders.termQuery("plateSource", "0"));
-        queryBuilder.must(QueryBuilders.termQuery("articleType", "child"));
-        queryBuilder.must(QueryBuilders.termQuery("plateLibId", "DAG_UNFINISHED_PLATE"));
-        queryBuilder.should(QueryBuilders.termQuery("operationEnName", "Establish"));
-        queryBuilder.should(QueryBuilders.termQuery("operationEnName", "auditReturn"));
-        queryBuilder.must(QueryBuilders.rangeQuery("insertTime").gte(startTime).lte(endTime));
+        //queryBuilder.must(QueryBuilders.termQuery("size", "10"));
+        //queryBuilder.must(QueryBuilders.termQuery("page", "1"));
+        //queryBuilder.must(QueryBuilders.termQuery("queryWay", "1"));
+        queryBuilder.must(QueryBuilders.termQuery("articleType", "parent"));
+        queryBuilder.must(QueryBuilders.termQuery("docLibId", "DAG_FINISHED"));
+        queryBuilder.must(QueryBuilders.termsQuery("upLoader", list2));
+        queryBuilder.must(
+                QueryBuilders.boolQuery()
+                        .should(QueryBuilders.termQuery("operationEnName", list))
+                        .should(QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("operationEnName")))
+        );
+        //queryBuilder.must(QueryBuilders.rangeQuery("insertTime").gte(startTime).lte(endTime));
 
-        SearchResponse searchResponse = searchRequestBuilder.setQuery(queryBuilder).execute().actionGet();
+//        SearchResponse searchResponse =
+//                searchRequestBuilder.addSort("issueDateTime", SortOrder.DESC).setFrom(1).setSize(10).setQuery(queryBuilder).execute().actionGet();
+//        System.out.println(queryBuilder.toString());
+
+        SearchRequestBuilder searchRequestBuilder =
+                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search").setTypes("archieve_type").setQuery(queryBuilder);
+
+        // 按发稿时间倒序
+        searchRequestBuilder.addSort("issueDateTime", SortOrder.DESC);
+
+        SearchResponse searchResponse = searchRequestBuilder.setFrom(1).setSize(10).execute().actionGet();
+
+
         SearchHits searchHits = searchResponse.getHits();
         long totalHits = searchHits.getTotalHits();
         System.out.println("数据总量：" + totalHits);
@@ -495,8 +538,7 @@ public class LyfeifeiApplicationTests {
             while (iterator.hasNext()) {
                 SearchHit searchHit = iterator.next();
                 Map<String, Object> entityMap = searchHit.getSourceAsMap();
-                System.out.println("打印查询结果：");
-                System.out.println(entityMap.toString());
+                System.out.println("打印查询结果：" + entityMap.toString());
             }
         } else {
             System.out.println("暂无数据");
