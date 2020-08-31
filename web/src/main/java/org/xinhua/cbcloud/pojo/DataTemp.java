@@ -1,13 +1,12 @@
 package org.xinhua.cbcloud.pojo;
 
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 
-@Document(collection = "reporter_temp")
-public class ReporterTemp {
+@Document(collection = "data_temp")
+public class DataTemp {
 
     private ObjectId _id;
 
@@ -15,7 +14,7 @@ public class ReporterTemp {
 
     private String photoPlateNum;
 
-    private String dateTime;
+    private Date dateTime;
 
     private String filePath;
 
@@ -43,11 +42,11 @@ public class ReporterTemp {
         this.photoPlateNum = photoPlateNum;
     }
 
-    public String getDateTime() {
+    public Date getDateTime() {
         return dateTime;
     }
 
-    public void setDateTime(String dateTime) {
+    public void setDateTime(Date dateTime) {
         this.dateTime = dateTime;
     }
 
@@ -61,11 +60,11 @@ public class ReporterTemp {
 
     @Override
     public String toString() {
-        return "ReporterTemp{" +
+        return "DataTemp{" +
                 "_id=" + _id +
                 ", docId='" + docId + '\'' +
                 ", photoPlateNum='" + photoPlateNum + '\'' +
-                ", dateTime='" + dateTime + '\'' +
+                ", dateTime=" + dateTime +
                 ", filePath='" + filePath + '\'' +
                 '}';
     }

@@ -1,5 +1,6 @@
 package org.xinhua.cbcloud.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.xinhua.cbcloud.pojo.User;
+
+import java.util.List;
 
 @RestController
 public class Controller {
@@ -29,7 +32,9 @@ public class Controller {
         return null;
     }
 
-    public static void main(String[] args) {
+    @GetMapping("/dataInfo")
+    public List<JSONObject> dataInfo() {
 
+        return null;
     }
 }

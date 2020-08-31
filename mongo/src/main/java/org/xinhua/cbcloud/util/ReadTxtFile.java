@@ -7,7 +7,9 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -18,9 +20,8 @@ public class ReadTxtFile {
     static BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>();
 
     public static void main(String[] args) {
-        //readTep();
-        //String str = "/dagdata/reporter_temp/dag_pic/101002020040990001439_INFMX-PEA00800413.jpg";
-        //System.out.println(str.substring(str.lastIndexOf("_") + 1, str.length()).replace(".jpg", ""));
+        readTxt(blockingQueue);
+        extract(blockingQueue);
     }
 
     public static void readTep() {
@@ -34,9 +35,28 @@ public class ReadTxtFile {
 //        writeTxt();
     }
 
+    public static List<String> readTxtForList() {
+        List<String> resultList = new ArrayList<>();
+        try {
+            File file = new File("D:\\no-filePath-insertTime.txt");
+            InputStreamReader inputReader = new InputStreamReader(new FileInputStream(file));
+            BufferedReader bf = new BufferedReader(inputReader);
+            String str = null;
+            while ((str = bf.readLine()) != null) {
+                resultList.add(str);
+            }
+            log.info("数据读取完毕");
+            IOUtils.closeQuietly(bf);
+            IOUtils.closeQuietly(inputReader);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultList;
+    }
+
     public static void readTxt(BlockingQueue<String> blockingQueue) {
         try {
-            File file = new File("D:\\reporter_temp.txt");
+            File file = new File("D:\\filePath.txt");
             InputStreamReader inputReader = new InputStreamReader(new FileInputStream(file));
             BufferedReader bf = new BufferedReader(inputReader);
             String str = null;
@@ -53,6 +73,8 @@ public class ReadTxtFile {
 
     public static List<String> extract(BlockingQueue<String> blockingQueue) {
         List<String> list = new ArrayList<>();
+        Set set = new HashSet();
+        List<String> errorList = new ArrayList<>();
         try {
             int i = 0;
             String photoPlateNum = null;
@@ -62,13 +84,35 @@ public class ReadTxtFile {
                         .replace(".jpg", "")
                         .replace(".JPG", "")
                         .replace(".jpeg", "");
-                i++;
                 list.add(photoPlateNum);
+                if (!set.add(photoPlateNum)) {
+                    errorList.add(photoPlateNum);
+                }
             }
-            System.out.println("处理数据：" + i + " 条");
+            WriteTxtFile.writeTxtForError(errorList);
+            System.out.println("处理数据：" + i++ + " 条");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public static List<String> read(String fileName) {
+        List<String> resultList = new ArrayList<>();
+        try {
+            File file = new File("D:\\" + fileName);
+            InputStreamReader inputReader = new InputStreamReader(new FileInputStream(file));
+            BufferedReader bf = new BufferedReader(inputReader);
+            String str = null;
+            while ((str = bf.readLine()) != null) {
+                resultList.add(str);
+            }
+            log.info("数据读取完毕");
+            IOUtils.closeQuietly(bf);
+            IOUtils.closeQuietly(inputReader);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultList;
     }
 }

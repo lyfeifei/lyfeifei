@@ -46,7 +46,7 @@ public class WriteTxtFile {
 
     public static void writeTxt(List<String> list) {
         try {
-            File file = new File("D:\\writeTxt.txt");
+            File file = new File("D:\\error_data.txt");
             FileWriter out = new FileWriter(file);
             for (int i = 0; i < list.size(); i++) {
                 out.write(list.get(i) + "\r\n");
@@ -54,6 +54,36 @@ public class WriteTxtFile {
             IOUtils.closeQuietly(out);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void writeTxtForError(List<String> list) {
+        FileWriter out = null;
+        try {
+            File file = new File("D:\\filePath-error.txt");
+            out = new FileWriter(file);
+            for (int i = 0; i < list.size(); i++) {
+                out.write(list.get(i) + "\r\n");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(out);
+        }
+    }
+
+    public static void write(List<Object> list, String fileName) {
+        FileWriter out = null;
+        try {
+            File file = new File("D:\\" + fileName);
+            out = new FileWriter(file);
+            for (int i = 0; i < list.size(); i++) {
+                out.write(list.get(i) + "\r\n");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(out);
         }
     }
 }

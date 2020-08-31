@@ -6,8 +6,8 @@ spring:
     name: lyfeifei
   data:
     elasticsearch:
-      cluster-name: bigdata #lls
-      cluster-nodes: 127.0.0.1:9300
+      cluster-name: bigdata #bigdata #lls  #pa-platf
+      cluster-nodes: 127.0.0.1:9301
       repositories:
         enabled: true
       properties:
