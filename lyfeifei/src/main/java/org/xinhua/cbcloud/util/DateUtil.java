@@ -1,8 +1,10 @@
 package org.xinhua.cbcloud.util;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class DateUtil {
     /**
@@ -76,5 +78,47 @@ public class DateUtil {
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
         Date currYearLast = calendar.getTime();
         return new SimpleDateFormat("yyyy-MM-dd").format(currYearLast) + " 23:59:59";
+    }
+
+    /**
+     * 计算两个时间段中间的日期
+     * @param starttime
+     * @param endtime
+     * @return
+     */
+    public static List<String> getBetweenTime(String starttime, String endtime) {
+        List<String> betweenTime = new ArrayList<String>();
+        try {
+            Date sdate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(starttime);
+            Date edate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endtime);
+
+            SimpleDateFormat outformat = new SimpleDateFormat("yyyy-MM-dd");
+
+            Calendar sCalendar = Calendar.getInstance();
+            sCalendar.setTime(sdate);
+            int year = sCalendar.get(Calendar.YEAR);
+            int month = sCalendar.get(Calendar.MONTH);
+            int day = sCalendar.get(Calendar.DATE);
+            sCalendar.set(year, month, day, 0, 0, 0);
+
+            Calendar eCalendar = Calendar.getInstance();
+            eCalendar.setTime(edate);
+            year = eCalendar.get(Calendar.YEAR);
+            month = eCalendar.get(Calendar.MONTH);
+            day = eCalendar.get(Calendar.DATE);
+            eCalendar.set(year, month, day, 0, 0, 0);
+
+            while (sCalendar.before(eCalendar)) {
+                betweenTime.add(outformat.format(sCalendar.getTime()));
+                sCalendar.add(Calendar.DAY_OF_YEAR, 1);
+            }
+            betweenTime.add(outformat.format(eCalendar.getTime()));
+
+            // 不包含当天
+            //betweenTime.remove(endtime.replace(" 00:00:00", ""));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return betweenTime;
     }
 }

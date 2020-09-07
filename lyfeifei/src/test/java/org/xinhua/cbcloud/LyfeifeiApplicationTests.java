@@ -44,6 +44,7 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.xinhua.cbcloud.pojo.DocLog;
 import org.xinhua.cbcloud.repository.DocLogRepository;
+import org.xinhua.cbcloud.util.DateUtil;
 import org.xinhua.cbcloud.util.IDUtil;
 
 import java.text.SimpleDateFormat;
@@ -322,12 +323,11 @@ public class LyfeifeiApplicationTests {
         SearchRequestBuilder searchRequestBuilder =
                 elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search_v6").setTypes("archieve_type");
 
-        String operationEnName = "ToAudit";
-        String startTime = "2020-06-24 00:00:00";
-        String endTime = "2020-07-01 00:00:00";
+        String operationEnName = "Establish";
+        String startTime = "2020-09-01 00:00:00";
+        String endTime = "2020-09-07 00:00:00";
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-        queryBuilder.must(QueryBuilders.rangeQuery("plateSource").gte("0").lte("2"));
         queryBuilder.must(QueryBuilders.termQuery("articleType", "child"));
         queryBuilder.must(QueryBuilders.termQuery("operationEnName", operationEnName));
         queryBuilder.must(QueryBuilders.rangeQuery("insertTime").gte(startTime).lte(endTime));
@@ -338,23 +338,41 @@ public class LyfeifeiApplicationTests {
 
         dateHistogramAggregationBuilder.dateHistogramInterval(DateHistogramInterval.DAY).format("yyyy-MM-dd");
 
+        // 底片号排重
+        CardinalityAggregationBuilder cardinality = AggregationBuilders.cardinality("numCardinality").field("plateNum");
+
         // 执行查询
-        SearchResponse response = searchRequestBuilder.setQuery(queryBuilder).addAggregation(dateHistogramAggregationBuilder)
-                .execute().actionGet();
+        SearchResponse response = searchRequestBuilder.setQuery(queryBuilder)
+                .addAggregation(dateHistogramAggregationBuilder.subAggregation(cardinality)).execute().actionGet();
 
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        // 获取并遍历聚合结果，目前只按周、月、年来统计
+        Map<String, Object> tmpMap = new HashMap<>();
+        List<Map<String, Object>> tmpList = new ArrayList<>();
         Histogram histogram = response.getAggregations().get("dateBucket");
         for (Histogram.Bucket entry : histogram.getBuckets()) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("date", entry.getKeyAsString());
-            resultMap.put("value", entry.getDocCount());
-            result.add(resultMap);
-            System.out.println("遍历聚合结果：" + entry.getKeyAsString() + "，共：" + entry.getDocCount() + "个");
+            Cardinality sub = entry.getAggregations().get("numCardinality");
+            tmpMap.put(entry.getKeyAsString(), sub.getValue());
+        }
+        tmpList.add(tmpMap);
+
+        List<String> times = DateUtil.getBetweenTime(startTime, endTime);
+        System.out.println(times.toString());
+
+        for (int i = 0; i < times.size(); i++) {
+            if (tmpMap.get(times.get(i)) == null) {
+                tmpMap.put(times.get(i), "0");
+                tmpList.get(0).put(times.get(i), "0");
+            }
         }
 
-        System.out.println(result.toString());
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry map : tmpList.get(0).entrySet()) {
+            Map<String, Object> resultTmp = new HashMap<>();
+            resultTmp.put("date", map.getKey());
+            resultTmp.put("value", map.getValue());
+            result.add(resultTmp);
+        }
+
+        System.out.println("打印待编数据统计结果：{}" + result.toString());
     }
 
     @Test

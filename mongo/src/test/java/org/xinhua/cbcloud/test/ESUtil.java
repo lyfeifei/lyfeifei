@@ -40,6 +40,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.StringUtils;
 import org.xinhua.cbcloud.ftp.FtpJSch;
 import org.xinhua.cbcloud.pojo.ReporterTemp;
 import org.xinhua.cbcloud.pojo.User;
@@ -376,7 +377,7 @@ public class ESUtil {
     }
 
     @Test
-    public void scroll() {
+    public void EsScroll() {
 
         int i = 1;
         long begin = System.currentTimeMillis();
@@ -458,42 +459,121 @@ public class ESUtil {
 
     @Test
     public void mongoCount2() {
-        List<String> docIds = null;
+
+        /**
+         * 1、放es排重放进去的数据过滤
+         */
+        List<String> list = ReadTxtFile.read("data-distinct-1171539.txt");
+
+        SearchRequestBuilder searchRequestBuilder =
+                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search").setTypes("archieve_type");
+
+        List<Object> resultList1 = new ArrayList<>();
+
+        List<Object> resultList2 = new ArrayList<>();
+
+        List<Object> resultList3 = new ArrayList<>();
+
+        String str = null;
         String photoPlateNum = null;
-        List<Object> resultList = new ArrayList<>();
-        FindIterable dbCursor = null;
-        BsonDocument parse = BsonDocument.parse("{\"docId\":-1}");
 
-        List<FindIterable> tableList = new ArrayList<>();
-
-        int tmp = 1;
-        for (int x = 0; x < 6090000; x += 20000) {
-            System.out.println("======================进行第" + tmp + "次数据查询=======================");
-            dbCursor = mongoTemplate.getCollection("DAG_FINISHED_PLATE").find().limit(20000+x).skip(x).sort(parse);
-            dbCursor.forEach((Consumer) iter ->{
-                //System.out.println(iter);
-            });
-            /*MongoCursor<Document> iterator = dbCursor.iterator();
-            while (iterator.hasNext()) {
-                resultList.add(iterator.next());
+        int temp = 1;
+        for (int i = 0; i < list.size(); i++) {
+            str = list.get(i);
+            System.out.println("======================进行第" + temp + "次处理=======================");
+            BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+            queryBuilder.must(QueryBuilders.termQuery("articleType", "child"));
+            queryBuilder.must(QueryBuilders.termQuery("docId", str.substring(0, str.indexOf("#"))));
+            try {
+                SearchResponse searchResponse = searchRequestBuilder.setQuery(queryBuilder).execute().actionGet();
+                SearchHits searchHits = searchResponse.getHits();
+                long totalHits = searchHits.getTotalHits();
+                if (totalHits > 0) {
+                    Iterator<SearchHit> iterator = searchHits.iterator();
+                    while (iterator.hasNext()) {
+                        SearchHit searchHit = iterator.next();
+                        photoPlateNum = searchHit.getSourceAsMap().get("photoPlateNum").toString();
+                        if (photoPlateNum != null && photoPlateNum.length() > 0) {
+                            // 根据docId能查到，底片号也存在，但是不存在底片类型
+                            if (!photoPlateNum.contains("-")) {
+                                resultList1.add(list.get(i));
+                            }
+                        } else {
+                            // 根据docId能查到，但是不存在底片号
+                            resultList3.add(list.get(i));
+                        }
+                    }
+                } else {
+                    // 根据docId查不到
+                    resultList2.add(list.get(i));
+                }
+            } catch (Exception e) {
+                continue;
             }
-            iterator.close();*/
-            tmp++;
+            temp += 1;
         }
 
-        System.out.println(tableList.size());
+        WriteTxtFile.write(resultList1, "UNFINISHED-not-plateType.txt");
+        WriteTxtFile.write(resultList2, "UNFINISHED-not-in-es.txt");
+        WriteTxtFile.write(resultList3, "UNFINISHED-not-photoPlateNum.txt");
+    }
 
-        /*for (int i = 0; i < docList.size(); i++) {
-            System.out.println("======================进行第" + i + "处理=======================");
-            doc = docList.get(i);
-            photoPlateNum = doc.getString("photoPlateNum");
-            docIds = doc.get("docIds", List.class);
-            for (int j = 0; j < docIds.size(); j++) {
-                resultList.add(docIds.get(j) + "#" + photoPlateNum);
+    @Test
+    public void mongoCount3() {
+
+        /**
+         * 1、放es排重，放进去的数据过滤，结果：22781
+         * 2、其中22781中存在只有parent没有child的情况
+         */
+        List<String> list = ReadTxtFile.read("data-distinct1-3.txt");
+
+        SearchRequestBuilder searchRequestBuilder =
+                elasticsearchTemplate.getClient().prepareSearch("archieves_bus_search").setTypes("archieve_type");
+
+        List<Object> resultList1 = new ArrayList<>();
+
+        List<Object> resultList2 = new ArrayList<>();
+
+        List<Object> resultList3 = new ArrayList<>();
+
+        String str = null;
+        String photoPlateNum = null;
+
+        int temp = 1;
+        for (int i = 0; i < list.size(); i++) {
+            str = list.get(i);
+            System.out.println("======================进行第" + temp + "次处理=======================");
+            BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+            //queryBuilder.must(QueryBuilders.termQuery("articleType", "child"));
+            queryBuilder.must(QueryBuilders.termQuery("docId", str.substring(0, str.indexOf("#"))));
+            try {
+                SearchResponse searchResponse = searchRequestBuilder.setQuery(queryBuilder).execute().actionGet();
+                SearchHits searchHits = searchResponse.getHits();
+                long totalHits = searchHits.getTotalHits();
+                if (totalHits > 1) {
+                    Iterator<SearchHit> iterator = searchHits.iterator();
+                    while (iterator.hasNext()) {
+                        SearchHit searchHit = iterator.next();
+                        photoPlateNum = searchHit.getSourceAsMap().get("photoPlateNum").toString();
+                        if (photoPlateNum != null && photoPlateNum.length() > 0) {
+                            // 根据docId能查到，底片号也存在，但是不存在底片类型
+                            if (!photoPlateNum.contains("-")) {
+                                resultList1.add(list.get(i));
+                            }
+                        } else {
+                            // 根据docId能查到，但是不存在底片号
+                            resultList3.add(list.get(i));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                continue;
             }
-        }*/
+            temp += 1;
+        }
 
-        System.out.println("统计大小：" + resultList.size());
-        WriteTxtFile.write(resultList, "mongo-data-finish.txt");
+        WriteTxtFile.write(resultList1, "all-not-plateType1.txt");
+        //WriteTxtFile.write(resultList2, "not-find-2.txt");
+        WriteTxtFile.write(resultList3, "all-not-photoPlateNum1.txt");
     }
 }
