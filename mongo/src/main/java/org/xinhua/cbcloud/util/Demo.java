@@ -8,8 +8,10 @@ import org.elasticsearch.index.reindex.UpdateByQueryAction;
 import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.script.Script;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -20,8 +22,39 @@ public class Demo {
 //        List list = new ArrayList();
 //        test();
 
-        File file = new File("D:\\data-distinct-1171539.txt");
-        System.out.println(file);
+//        File file = new File("D:\\data-distinct-1171539.txt");
+//        System.out.println(file);
+
+//        for (int i = 0; i < 5; i++) {
+//            String fileName = i + ".txt";
+//
+//            Date date = new Date();
+//            String dataForm = new SimpleDateFormat("yyyy-MM-dd").format(date);
+//            String path = "D:\\" + dataForm;
+//            File f = new File(path);
+//            if(!f.exists()){
+//                f.mkdirs();
+//            }
+//
+//            FileWriter out = new FileWriter(path + "\\" + fileName);
+//            out.write(path + fileName);
+//            out.flush();
+//            out.close();
+//        }
+
+        String sourceFilePath = "/dagdata/data1/video/2020/0907/1027bdecfabc48219d7cb06173ea0b6a_P.jpg";
+
+        final File htmlFile = File.createTempFile("temp", ".html");//创建临时文件
+        System.out.println("临时文件所在的本地路径：" + htmlFile.getCanonicalPath());
+        FileOutputStream fos = new FileOutputStream(htmlFile);
+        try {
+            //这里处理业务逻辑
+        } finally {
+            //关闭临时文件
+            fos.flush();
+            fos.close();
+            htmlFile.deleteOnExit();//程序退出时删除临时文件
+        }
     }
 
     public static void test() {
